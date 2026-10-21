@@ -1,0 +1,81 @@
+{
+  "id": 14013,
+  "qr": 1,
+  "opcode": 0,
+  "aa": 0,
+  "tc": 0,
+  "rd": 1,
+  "ra": 1,
+  "rcode": 0,
+  "qdcount": 1,
+  "ancount": 9,
+  "nscount": 0,
+  "arcount": 0,
+  "answers": [
+    {
+      "hostname": "princeton.edu",
+      "ttl": 18855,
+      "atype": 2,
+      "rtype": "NS",
+      "nsname": "a1-158.akam.net"
+    },
+    {
+      "hostname": "princeton.edu",
+      "ttl": 18855,
+      "atype": 2,
+      "rtype": "NS",
+      "nsname": "ns5.dnsmadeeasy.com"
+    },
+    {
+      "hostname": "princeton.edu",
+      "ttl": 18855,
+      "atype": 2,
+      "rtype": "NS",
+      "nsname": "ns7.dnsmadeeasy.com"
+    },
+    {
+      "hostname": "princeton.edu",
+      "ttl": 18855,
+      "atype": 2,
+      "rtype": "NS",
+      "nsname": "a7-65.akam.net"
+    },
+    {
+      "hostname": "princeton.edu",
+      "ttl": 18855,
+      "atype": 2,
+      "rtype": "NS",
+      "nsname": "a6-64.akam.net"
+    },
+    {
+      "hostname": "princeton.edu",
+      "ttl": 18855,
+      "atype": 2,
+      "rtype": "NS",
+      "nsname": "a20-65.akam.net"
+    },
+    {
+      "hostname": "princeton.edu",
+      "ttl": 18855,
+      "atype": 2,
+      "rtype": "NS",
+      "nsname": "ns6.dnsmadeeasy.com"
+    },
+    {
+      "hostname": "princeton.edu",
+      "ttl": 18855,
+      "atype": 2,
+      "rtype": "NS",
+      "nsname": "a3-67.akam.net"
+    },
+    {
+      "hostname": "princeton.edu",
+      "ttl": 18855,
+      "atype": 2,
+      "rtype": "NS",
+      "nsname": "a24-66.akam.net"
+    }
+  ],
+  "authority": [],
+  "additional": []
+}

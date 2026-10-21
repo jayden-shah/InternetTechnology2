@@ -80,10 +80,23 @@ def parse_rr(data, offset):
     rdata = data[offset:offset+rdlength]
     offset += rdlength
     record={}
-    ##########
-    ##  Your code here to create a record given data 
-    ## record fields shoud include  hostname, ttl, atype, rtype, ip, nsname
-    #################
+
+    record["hostname"] = name
+    record["ttl"] = ttl
+    record["atype"] = atype
+
+
+    if atype == 1:
+        record["rtype"] = "A"
+        record["ip"] = socket.inet_ntop(socket.AF_INET, rdata)
+    elif atype == 28:
+        record["rtype"] = "AAAA"
+        record["ip"] = socket.inet_ntop(socket.AF_INET6, rdata)
+    elif atype == 2:
+        record["rtype"] = "NS"
+        record["nsname"], _ = parse_name(data, offset - rdlength)
+    else:
+        record["rtype"] = str(atype)
 
     return record,offset
 
@@ -119,10 +132,31 @@ def parse_response(data):
         rr, offset = parse_rr(data, offset)
         answers.append(rr)
 
-    
+
+    authority = []
+    i = 0
+    while i < NSCOUNT:
+        rr, offset = parse_rr(data, offset)
+        authority.append(rr)
+        i += 1
+
+    additional = []
+    i = 0
+    while i < ARCOUNT:
+        rr, offset = parse_rr(data, offset)
+        additional.append(rr)
+        i += 1
 
     response["answers"] = answers
-    
+    response["authority"] = authority
+    response["additional"] = additional
+
+    if response["tc"] == 1:
+        response["error"] = "response truncated tc = 1"
+        return response
+    if response["ra"] == 0:
+        response["error"] = "recursion not available ra = 0"
+        return response
 
     return response
 
