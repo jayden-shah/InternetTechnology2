@@ -61,6 +61,13 @@ def parse_response(data):
     response["qdcount"] = QDCOUNT
     response["ancount"] = ANCOUNT
 
+    if response["tc"] == 1:
+        response["error"] = "response truncated tc = 1"
+        return response
+    if response["ra"] == 0:
+        response["error"] = "recursion not available ra = 0"
+        return response
+
     offset = 12
     # Skip questions
     for _ in range(QDCOUNT):
@@ -89,6 +96,14 @@ def parse_response(data):
 		 TODO  Add code to extract IPv4 address or IPv6 address based on atype and rdlength
 		 Answer should contain three fields "type","ip", and "ttl"
         '''
+
+        if atype == 1 and rdlength == 4:
+            ip = socket.inet_ntop(socket.AF_INET, rdata)
+            answers.append({"type": atype, "ip": ip, "ttl": ttl})
+        elif atype == 28 and rdlength == 16:
+            ip = socket.inet_ntop(socket.AF_INET6, rdata)
+            answers.append({"type": atype, "ip": ip, "ttl": ttl})
+            
     response["answers"] = answers
     return response
 
@@ -102,3 +117,28 @@ def dns_query(query_spec, server=("8.8.8.8", 53)):
     sock.close()
     result=parse_response(data)
     return result
+
+if __name__ == "__main__":
+    with open("Input.json", "r") as f:
+        query_json = json.load(f)
+
+    results = []
+    i = 0
+    while i < len(query_json):
+        q = query_json[i]
+        dns_query_spec = {
+            "id": 1337,
+            "qr": 0,
+            "opcode": 0,
+            "rd": 1,
+            "questions": [
+                {"qname": q["qname"], "qtype": q["qtype"], "qclass": 1}
+            ]
+        }
+        response = dns_query(dns_query_spec)
+        print(json.dumps(response, indent=2))
+        results.append(response)
+        i += 1
+
+    with open("output.txt", "w") as f:
+        json.dump(results, f, indent=2)
