@@ -5,7 +5,7 @@ import json
 
 # Example query spec as JSON
 dns_query_spec = {
-    "id": random.randint(0, 65535),
+    "id": 1337,
     "qr": 0,      # query
     "opcode": 0,  # standard query
     "rd": 1,      # recursion desired
