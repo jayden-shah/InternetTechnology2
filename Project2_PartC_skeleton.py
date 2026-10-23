@@ -5,10 +5,10 @@ import json
 
 # Example query spec as JSON
 dns_query_spec = {
-    "id": random.randint(0, 65535),
+    "id": 1337,
     "qr": 0,      # query
     "opcode": 0,  # standard query
-    "rd": 1,      # recursion desired
+    "rd": 0,      # recursion desired
     "questions": [
         {
             "qname": "ilab1.cs.rutgers.edu",
@@ -72,11 +72,38 @@ def parse_name(data, offset):
     else:
         return ".".join(labels), original_offset
 
+
 #your parse_rr from part2
 def parse_rr(data, offset):
   record={}
   ## your code from part 2
-  return record, offset
+
+  name, offset = parse_name(data, offset)
+  atype, aclass, ttl, rdlength = struct.unpack("!HHIH", data[offset:offset+10])
+  offset += 10
+  rdata = data[offset:offset+rdlength]
+  offset += rdlength
+  record={}
+  
+  record["hostname"] = name
+  record["ttl"] = ttl
+  record["atype"] = atype
+
+
+  if atype == 1:
+    record["rtype"] = "A"
+    record["ip"] = socket.inet_ntop(socket.AF_INET, rdata)
+    
+  elif atype == 28:
+    record["rtype"] = "AAAA"
+    record["ip"] = socket.inet_ntop(socket.AF_INET6, rdata)
+  elif atype == 2:
+    record["rtype"] = "NS"
+    record["nsname"], _ = parse_name(data, offset - rdlength)
+  else:
+    record["rtype"] = str(atype)
+    
+  return record,offset
 
 def parse_response(data):
     response = {}
@@ -108,13 +135,22 @@ def parse_response(data):
     for _ in range(ANCOUNT):
         rr, offset = parse_rr(data, offset)
         answers.append(rr)
+
     authorities=[]
-    # Parse Authority RRs (NS)
-    #Add code to parse NS records
+    i = 0
+    while i < NSCOUNT:
+        rr, offset = parse_rr(data, offset)
+        authorities.append(rr)
+        i += 1
+
     additionals=[]
-    # Parse Additional RRs (A, AAAA, etc.)
-    #Add code to Parse additonal records
-    
+    i = 0
+    while i < ARCOUNT:
+        rr, offset = parse_rr(data, offset)
+        additionals.append(rr)
+        i += 1
+
+
     response["answers"] = answers
     response["authorities"] = authorities
     response["additionals"] = additionals
@@ -138,19 +174,37 @@ def iterative_resolve(query_spec):
     servers = ["198.41.0.4"]#initialize with ip address of any root servers]
     print ("roort servers",servers)
 
+    contacted = []
+
+
     while servers: 
         server_ip = servers.pop(0)
-         
 
-           ## code main loop
-           #1. dns_query to server_ip
-           #2. check if response ['answers] has ip address, if so done , return ip addrees
-           #else check if additionals has ip address, if so servers=[new_server]
-           # If no glue ip address found, exit
-           #if not new_server:
-            #return {"error": "No glue found"}
+        contacted.append(server_ip)
+        print("Query", len(contacted), "->", server_ip)
 
+        response = dns_query(query_spec, (server_ip, 53))
+        print("   aa =", response["aa"], " tc =", response["tc"],
+              " answers =", len(response["answers"]),
+              " authorities =", len(response["authorities"]),
+              " additionals =", len(response["additionals"]))
+        
+        for rr in response["answers"]:
+            if rr.get("rtype") == "A":
+                return {"ip": rr["ip"], "servers_contacted": contacted}
+            
+        new_server = None
+        for rr in response["additionals"]:
+            if rr.get("rtype") == "A":
+                new_server = rr["ip"]
+                break
 
+        if not new_server:
+            return {"error": "No glue found", "servers_contacted": contacted}
+ 
+        servers = [new_server]
+ 
+    return {"error": "No servers left to query", "servers_contacted": contacted}
 
 
 if __name__ == "__main__":
